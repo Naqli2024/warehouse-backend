@@ -1,5 +1,19 @@
 const mongoose = require("mongoose");
 
+const itemDetailsSchema = new mongoose.Schema(
+  {
+    name: { type: String, default: "" },
+    quantity: { type: Number, default: 0 },
+    price: { type: Number, default: 0 },
+    discount: { type: Number, default: 0 },
+    gst: { type: Number, default: 0 },
+    amount: { type: Number, default: 0 },
+  },
+  {
+    strict: false,
+  }
+);
+
 const createSalesOrder = new mongoose.Schema({
   saleType: {
     type: String,
@@ -7,7 +21,11 @@ const createSalesOrder = new mongoose.Schema({
   },
   customerName: {
     type: String,
-    required: true,
+    required: false,
+  },
+  storeDepartment: {
+    type: String,
+    required: false
   },
   salesOrderId: {
     type: String,
@@ -19,7 +37,7 @@ const createSalesOrder = new mongoose.Schema({
   },
   paymentTerms: {
     type: String,
-    required: true,
+    required: false,
   },
   shipmentDate: {
     type: String,
@@ -29,14 +47,22 @@ const createSalesOrder = new mongoose.Schema({
     type: String,
     required: true,
   },
-  deliveryDate: {
+  salesPerson: {
     type: String,
     required: true,
   },
-  itemDetails: {
-    type: Map,
-    of: String,
-    default: {},
+  itemDetails: [itemDetailsSchema],
+  subTotal: {
+    type: Number,
+    default: 0
+  },
+  shipmentCharges: {
+    type: Number,
+    default: 0
+  },
+  total: {
+    type: Number,
+    default: 0
   },
   status: {
     value: {

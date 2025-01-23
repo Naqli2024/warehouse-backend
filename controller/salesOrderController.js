@@ -36,5 +36,31 @@ const getAllSalesOrders = async (req, res) => {
   }
 };
 
+const getSaleOrderBySalesOrderId = async (req, res) => {
+  const { saleOrderId } = req.params;
+  try {
+    const saleOrderData = await salesOrder.findOne({ salesOrderId: String(saleOrderId) });
+    if (!saleOrderData) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: "Sale order not found",
+      });
+    }
+    return res.status(200).json({
+      message: "Sale order fetched successfully",
+      data: saleOrderData,
+      success: true,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message,
+    });
+  }
+};
+
 exports.createSalesorder = createSalesorder;
 exports.getAllSalesOrders = getAllSalesOrders;
+exports.getSaleOrderBySalesOrderId = getSaleOrderBySalesOrderId;
