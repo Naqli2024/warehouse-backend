@@ -14,68 +14,71 @@ const itemDetailsSchema = new mongoose.Schema(
   }
 );
 
-const createSalesOrder = new mongoose.Schema({
-  saleType: {
-    type: String,
-    required: true,
-  },
-  customerName: {
-    type: String,
-    required: false,
-  },
-  storeDepartment: {
-    type: String,
-    required: false
-  },
-  salesOrderId: {
-    type: String,
-    required: true,
-  },
-  salesorderDate: {
-    type: String,
-    required: true,
-  },
-  paymentTerms: {
-    type: String,
-    required: false,
-  },
-  shipmentDate: {
-    type: String,
-    required: true,
-  },
-  deliveryMethod: {
-    type: String,
-    required: true,
-  },
-  salesPerson: {
-    type: String,
-    required: true,
-  },
-  itemDetails: [itemDetailsSchema],
-  subTotal: {
-    type: Number,
-    default: 0
-  },
-  shipmentCharges: {
-    type: Number,
-    default: 0
-  },
-  total: {
-    type: Number,
-    default: 0
-  },
-  status: {
-    value: {
+const createSalesOrder = new mongoose.Schema(
+  {
+    saleType: {
       type: String,
-      enum: ["Delivered", "Open", "Closed", "Pending approval", "Draft"],
-      default: "Draft",
+      required: true,
     },
-    changesAt: {
-      type: Date,
-      default: Date.now(),
+    customerName: {
+      type: String,
+      required: false,
+    },
+    sourceDepartment: {
+      type: String,
+      required: false,
+    },
+    salesOrderId: {
+      type: String,
+      required: true,
+    },
+    salesorderDate: {
+      type: String,
+      required: true,
+    },
+    paymentTerms: {
+      type: String,
+      required: false,
+    },
+    shipmentDate: {
+      type: String,
+      required: true,
+    },
+    deliveryMethod: {
+      type: String,
+      required: true,
+    },
+    salesPerson: {
+      type: String,
+      required: true,
+    },
+    itemDetails: [itemDetailsSchema],
+    subTotal: {
+      type: Number,
+      default: 0,
+    },
+    shipmentCharges: {
+      type: Number,
+      default: 0,
+    },
+    total: {
+      type: Number,
+      default: 0,
+    },
+    status: {
+      value: {
+        type: String,
+        enum: ["Approved", "Rejected", "Draft", "Confirmed", "Closed", "Void"],
+        default: "Draft",
+      },
+      changesAt: {
+        type: Date,
+        default: Date.now(),
+      },
     },
   },
-});
+  { timestamps: true }
+);
 
 const salesOrder = mongoose.model("salesOrders", createSalesOrder);
 module.exports = salesOrder;
