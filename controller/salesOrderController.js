@@ -144,9 +144,38 @@ const getSaleOrderConfirmed = async (req, res) => {
   }
 };
 
+const generateSalesOrderId = async (req, res) => {
+  try {
+    let saleOrderId;
+
+    const lastSaleOrder = await salesOrder
+      .findOne()
+      .sort({ createdAt: -1 })
+      .select("salesOrderId");
+    if (lastSaleOrder && lastSaleOrder.salesOrderId) {
+      const lastSaleOrderNumber = parseInt(lastSaleOrder.salesOrderId.split("-")[1], 10);
+      const newSaleOrder = lastSaleOrderNumber + 1;
+      saleOrderId = `SO-${newSaleOrder.toString().padStart(2, "0")}`;
+    } else {
+      saleOrderId = "SO-00";
+    }
+    return res.status(200).json({
+      success: true,
+      data: saleOrderId,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      data: null,
+      error: error.message,
+    });
+  }
+};
+
 exports.createSalesorder = createSalesorder;
 exports.getAllSalesOrders = getAllSalesOrders;
 exports.getSaleOrderBySalesOrderId = getSaleOrderBySalesOrderId;
 exports.updateStatusOfSalesOrder = updateStatusOfSalesOrder;
 exports.deleteSaleOrderById = deleteSaleOrderById;
 exports.getSaleOrderConfirmed = getSaleOrderConfirmed;
+exports.generateSalesOrderId = generateSalesOrderId;

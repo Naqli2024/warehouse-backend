@@ -6,15 +6,15 @@ const createShipment = async (req, res) => {
   try {
     const saleOrder = await Saleorder.findOne({
       customerName: req.body.customerName,
-      salesOrderId: req.body.salesOrderId
-    })
+      salesOrderId: req.body.salesOrderId,
+    });
 
-    if(!saleOrder) {
+    if (!saleOrder) {
       return res.status(404).json({
         success: false,
         message: `No matching sales order found for Customer: ${req.body.customerName} and Sales Order ID: ${req.body.salesOrderId}`,
         data: null,
-      })
+      });
     }
 
     const shipmentExists = await Shipment.findOne({
@@ -24,7 +24,7 @@ const createShipment = async (req, res) => {
     if (shipmentExists) {
       return res.status(500).json({
         success: false,
-        message: `Sales order ${req.body.salesOrderId} already shipped as ${shipmentExists.shipmentOrder}`,
+        message: `Sale order ${req.body.salesOrderId} already shipped as ${shipmentExists.shipmentOrder}`,
         data: null,
       });
     }
@@ -37,12 +37,27 @@ const createShipment = async (req, res) => {
         carrier: req.body.carrier,
         shipmentStatus: req.body.shipmentStatus,
         shipmentDate: req.body.shipmentDate,
+        shipmentOrder: req.body.shipmentOrder,
       });
       await findPackage.save();
+    } else {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: `Sales order ${req.body.salesOrderId} has not been packed yet. Please complete the packing process before proceeding.`,
+      });
     }
 
     const newShipment = new Shipment(req.body);
     await newShipment.save();
+
+    // To mark the shipment as "Confirmed"
+    if (newShipment) {
+      saleOrder.shipped = "Confirmed";
+    } else {
+      saleOrder.shipped = "Draft";
+    }
+    await saleOrder.save();
 
     return res.status(200).json({
       success: true,
@@ -131,6 +146,28 @@ const deleteShipmentByShipmentOrder = async (req, res) => {
         data: null,
       });
     }
+    const salesOrder = await Saleorder.findOne({
+      salesOrderId: deletedShipment.salesOrderId,
+    });
+    if (salesOrder) {
+      salesOrder.shipped = "Draft"; 
+      await salesOrder.save();
+    }
+    
+    const findPackage = await Package.findOne({
+      salesOrderId: deletedShipment.salesOrderId, // Corrected reference
+    });
+
+    if (findPackage) {
+      Object.assign(findPackage, {
+        carrier: "",
+        shipmentStatus: "",
+        shipmentDate: "",
+        shipmentOrder: "",
+      });
+      await findPackage.save();
+    }
+
     return res.status(200).json({
       success: true,
       message: `Shipment order with Id ${shipmentOrder} has been deleted`,
@@ -168,6 +205,17 @@ const updateShipmentStatus = async (req, res) => {
     updatedShipment.shipmentStatus = shipmentStatus;
     updatedShipment.deliveredDate = deliveredDate;
     updatedShipment.deliveredTime = deliveredTime;
+
+    // If shipment status is 'Delivered', update SalesOrder.deliveryStatus
+    if (shipmentStatus === "Delivered") {
+      const salesOrder = await Saleorder.findOne({ salesOrderId: salesOrderId });
+
+      if (salesOrder) {
+        salesOrder.deliveryStatus = "Delivered";  
+        await salesOrder.save();
+      }
+    }
+
     await updatedShipment.save();
     return res.status(200).json({
       success: true,

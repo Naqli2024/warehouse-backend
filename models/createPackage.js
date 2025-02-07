@@ -27,9 +27,10 @@ const newPackage = mongoose.Schema(
         quantity: { type: Number, required: true },
       },
     ],
-    carrier: {type: String, required: false},
-    shipmentStatus: {type: String, required: false},
-    shipmentDate: {type: String, required: false}
+    carrier: { type: String, required: false },
+    shipmentStatus: { type: String, required: false },
+    shipmentDate: { type: String, required: false },
+    shipmentOrder: { type: String, required: false },
   },
   { timeStamps: true }
 );

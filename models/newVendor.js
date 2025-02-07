@@ -34,6 +34,7 @@ const createNewVendorSchema = new mongoose.Schema({
   basicInformation: basicInformationSchema,
   billingAddress: billingAddressSchema,
   shippingAddress: shippingAddressSchema,
+  purchaseList: [{}]
 });
 
 const newVendor = mongoose.model("vendor", createNewVendorSchema);

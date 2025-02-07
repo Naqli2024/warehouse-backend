@@ -68,7 +68,7 @@ const createSalesOrder = new mongoose.Schema(
     status: {
       value: {
         type: String,
-        enum: ["Approved", "Rejected", "Draft", "Confirmed", "Closed", "Void"],
+        enum: ["Approved", "Rejected", "Draft", "Confirmed", "Closed", "Void", "Delivered"],
         default: "Draft",
       },
       changesAt: {
@@ -76,6 +76,9 @@ const createSalesOrder = new mongoose.Schema(
         default: Date.now(),
       },
     },
+    packed: { type: String, required: false },
+    shipped: { type: String, required: false },
+    deliveryStatus: {type: String, required: false}
   },
   { timestamps: true }
 );

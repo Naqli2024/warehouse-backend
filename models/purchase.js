@@ -14,7 +14,7 @@ const createPurchaseSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    hnsCode: {
+    hsnCode: {
       type: String,
       required: true,
     },

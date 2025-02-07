@@ -90,6 +90,87 @@ const findPurchase = async (req, res) => {
   }
 };
 
+const deletePurchaseById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const purchaseFound = await purchase.findByIdAndDelete({ _id: id });
+    if (!purchaseFound) {
+      res.status(404).json({
+        success: false,
+        data: null,
+        message: "No purchase found",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      data: purchaseFound,
+      message: "Purchase item deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message,
+    });
+  }
+};
+
+const generateSkuForProduct = async (req, res) => {
+  try {
+    let skuCode;
+
+    const skuFound = await purchase
+      .findOne()
+      .sort({ createdAt: -1 })
+      .select("sku");
+    if (skuFound) {
+      const lastSku = parseInt(skuFound.split("-")[1]);
+      const newSku = lastSku + 1;
+      skuCode = `SKU-${newSku.toString().padStart(0, "4")}`;
+    } else {
+      skuCode = "SKU-0000";
+    }
+    return res.status(200).json({
+      success: true,
+      data: skuCode,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message,
+    });
+  }
+};
+
+const generateHsnCode = async (req, res) => {
+  try {
+    let newHsn;
+    let isDuplicate = true;
+
+    while (isDuplicate) {
+      newHsn = Math.floor(1000 + Math.random() * 9000);
+      const hsnFound = await purchase.findOne({ hsnCode: newHsn });
+      if (!hsnFound) {
+        isDuplicate = false;
+      }
+    }
+    return res.status(200).json({
+      success: true,
+      data: newHsn
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message,
+    });
+  }
+};
+
 exports.createPurchase = createPurchase;
 exports.getPurchaseList = getPurchaseList;
 exports.findPurchase = findPurchase;
+exports.deletePurchaseById = deletePurchaseById;
+exports.generateSkuForProduct = generateSkuForProduct;
+exports.generateHsnCode = generateHsnCode;

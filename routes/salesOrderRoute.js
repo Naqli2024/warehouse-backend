@@ -8,5 +8,6 @@ router.get('/getSaleOrderBySaleOrderId/:saleOrderId', saleOrderController.getSal
 router.put('/updateSaleOrderStatus', saleOrderController.updateStatusOfSalesOrder);
 router.delete('/deleteSaleOrderById/:id', saleOrderController.deleteSaleOrderById);
 router.get('/getSaleOrderConfirmed', saleOrderController.getSaleOrderConfirmed);
+router.get('/generateSalesOrderId', saleOrderController.generateSalesOrderId);
 
 module.exports = router;

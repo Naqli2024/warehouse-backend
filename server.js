@@ -10,6 +10,8 @@ const packageRoute = require("./routes/packageRoute");
 const shipmentRoute = require("./routes/shipmentRoute");
 const sourceDepartmentRoute = require("./routes/sourceDepartment");
 const vendorRoute = require("./routes/vendorsRoute");
+const challanRoute = require("./routes/deliveryChallanRoute");
+const categoryRoute = require("./routes/categoryRoute");
 
 //environment variables
 env.config();
@@ -23,9 +25,11 @@ app.use("/api", purchaseRoute);
 app.use("/api", inventoryRoute);
 app.use("/api", saleOrderRoute);
 app.use("/api", packageRoute);
-app.use('/api', shipmentRoute);
+app.use("/api", shipmentRoute);
 app.use("/api", sourceDepartmentRoute);
 app.use("/api", vendorRoute);
+app.use("/api", challanRoute);
+app.use("/api", categoryRoute);
 
 app.listen(process.env.PORT, () =>
   console.log(`Server is connected at port ${process.env.PORT}`)

@@ -1,4 +1,6 @@
 const Package = require("../models/createPackage");
+const SalesOrder = require("../models/createSalesOrder");
+const Shipment = require("../models/shipment");
 
 const createPackage = async (req, res) => {
   try {
@@ -12,6 +14,20 @@ const createPackage = async (req, res) => {
         success: false,
       });
     }
+
+    const confirmedPackedStatus = await SalesOrder.findOne({
+      salesOrderId: req.body.salesOrderId,
+    });
+    if (!confirmedPackedStatus) {
+      return res.status(404).json({
+        message: `Sales order ${req.body.salesOrderId} not found.`,
+        success: false,
+      });
+    }
+    // Update packed status
+    confirmedPackedStatus.packed = "Confirmed";
+    await confirmedPackedStatus.save();
+
     await newPackage.save();
     return res.status(200).json({
       message: "New package added",
@@ -82,6 +98,18 @@ const getPackageDetails = async (req, res) => {
 const deletePackageById = async (req, res) => {
   const { id } = req.params;
   try {
+    const isShipped = await Shipment.findOne({ packageSlip: id });
+    
+    // Check if the package is already shipped
+    if (isShipped) {
+      return res.status(409).json({
+        success: false,
+        data: null,
+        message: `Cannot delete package. Sale order ${isShipped.salesOrderId} has already been shipped.`,
+      });
+    }
+
+    // Proceed to delete the package if it's not shipped
     const deletedPackage = await Package.findOneAndDelete({ packageSlip: id });
     if (!deletedPackage) {
       return res.status(404).json({
@@ -90,6 +118,16 @@ const deletePackageById = async (req, res) => {
         data: null,
       });
     }
+
+    // Update the sales order status to "Draft" after deleting the package
+    const salesOrder = await SalesOrder.findOne({
+      salesOrderId: deletedPackage.salesOrderId,
+    });
+    if (salesOrder) {
+      salesOrder.packed = "Draft";
+      await salesOrder.save();
+    }
+  
     return res.status(200).json({
       success: true,
       message: "Package deleted",
