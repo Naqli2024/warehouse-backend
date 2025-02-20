@@ -2,12 +2,12 @@ const mongoose = require("mongoose");
 
 const itemDetailsSchema = new mongoose.Schema(
   {
-    name: { type: String, default: "" },
+    itemName: { type: String, default: "" },
     quantity: { type: Number, default: 0 },
     price: { type: Number, default: 0 },
     discount: { type: Number, default: 0 },
     gst: { type: Number, default: 0 },
-    amount: { type: Number, default: 0 },
+    total: { type: Number, default: 0 },
   },
   {
     strict: false,

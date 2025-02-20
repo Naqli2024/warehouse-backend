@@ -1,12 +1,51 @@
 const purchase = require("../models/purchase");
+const Category = require("../models/categoryModel");
 
 const createPurchase = async (req, res) => {
   try {
     const purchaseData = req.body;
-    const { extraFields, ...regularFields } = purchaseData;
+    const { extraFields, productName, category, subCategory, ...regularFields } = purchaseData;
+
+    if (!category || !subCategory || !productName) {
+      return res.status(400).send({
+        success: false,
+        message: "Category, subCategory, and productName are required.",
+      });
+    }
+
+    // Convert productName to lowercase
+    const lowerProductName = productName.toLowerCase();
+    const lowerCategory = category.toLowerCase();
+    const lowerSubCategory = subCategory.toLowerCase();
+    regularFields.productName = lowerProductName;
+    regularFields.category = lowerCategory;
+    regularFields.subCategory = lowerSubCategory;
 
     if (extraFields) {
       regularFields.extraFields = extraFields;
+    }
+
+    const categoryFound = await Category.findOne({categoryName: lowerCategory})
+    if(!categoryFound) {
+      return res.json({
+        success: false,
+        data: null,
+        message: "Category not found"
+      })
+    }
+
+    const subCategoryDoc = categoryFound.subCategories.find((cat) => cat.name === lowerSubCategory);
+    if(!subCategoryDoc) {
+      return res.json({
+        success: false,
+        data: null,
+        message: "Sub category not found"
+      })
+    }
+
+    if(!subCategoryDoc.productList.includes(lowerProductName)) {
+      subCategoryDoc.productList.push(lowerProductName)
+      await categoryFound.save()
     }
 
     const savedPurchase = new purchase(regularFields);
@@ -123,12 +162,12 @@ const generateSkuForProduct = async (req, res) => {
       .findOne()
       .sort({ createdAt: -1 })
       .select("sku");
-    if (skuFound) {
-      const lastSku = parseInt(skuFound.split("-")[1]);
+    if (skuFound && skuFound.sku) {
+      const lastSku = parseInt(skuFound.sku.split("-")[1]);
       const newSku = lastSku + 1;
-      skuCode = `SKU-${newSku.toString().padStart(0, "4")}`;
+      skuCode = `SKU-${newSku.toString().padStart(4, "0")}`;
     } else {
-      skuCode = "SKU-0000";
+      skuCode = "SKU-0001";
     }
     return res.status(200).json({
       success: true,
@@ -168,9 +207,48 @@ const generateHsnCode = async (req, res) => {
   }
 };
 
+const getPurchaseByProductName = async (req, res) => {
+  try {
+    let productNames = [];
+
+    // Support both array & single param
+    if(Array.isArray(req.body.productNames)) {
+      productNames = req.body.productNames
+    } else {
+      productNames = [req.body.productNames]
+    } 
+    productNames = productNames.map(name => name.toLowerCase()); 
+
+    // Fetch all matching products
+    const foundProducts = await purchase.find({ productName: { $in: productNames } });
+
+    if (foundProducts.length === 0) {
+      return res.status(404).json({
+        success: false,
+        data: [],
+        message: "No products found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Products fetched successfully",
+      data: foundProducts,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message,
+    });
+  }
+};
+
 exports.createPurchase = createPurchase;
 exports.getPurchaseList = getPurchaseList;
 exports.findPurchase = findPurchase;
 exports.deletePurchaseById = deletePurchaseById;
 exports.generateSkuForProduct = generateSkuForProduct;
 exports.generateHsnCode = generateHsnCode;
+exports.getPurchaseByProductName = getPurchaseByProductName;

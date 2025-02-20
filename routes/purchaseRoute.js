@@ -9,5 +9,6 @@ router.post('/getPurchase', purchaseController.findPurchase);
 router.delete('/deletePurchaseById/:id', purchaseController.deletePurchaseById);
 router.get("/generateSkuForProduct", purchaseController.generateSkuForProduct);
 router.get("/generateHsnCode", purchaseController.generateHsnCode);
+router.post("/getPurchaseByProductName", purchaseController.getPurchaseByProductName);
 
 module.exports = router;

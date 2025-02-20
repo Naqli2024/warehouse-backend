@@ -26,6 +26,14 @@ const createPurchaseSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    manufacturer: {
+      type: String,
+      required: false
+    },
+    manufacturedDate: {
+      type: String,
+      required: false
+    },
     MRP: {
       type: String,
       required: true,
@@ -53,6 +61,10 @@ const createPurchaseSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
+    },
+    subCategory: {
+      type: String, 
+      required: true
     },
     wareHouse: {
       type: String,
