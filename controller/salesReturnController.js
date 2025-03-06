@@ -1,6 +1,7 @@
 const SalesReturn = require("../models/salesReturn");
 const Inventory = require("../models/createInventory");
 const Shipment = require("../models/shipment");
+const SalesInvoice = require("../models/salesInvoiceModel");
 
 const createSalesReturn = async (req, res) => {
   try {
@@ -12,6 +13,15 @@ const createSalesReturn = async (req, res) => {
         success: false,
         data: null,
         message: `SaleOrder not yet shipped`
+      })
+    }
+
+    const isInvoiced = await SalesInvoice.findOne({salesOrderId})
+    if(!isInvoiced || isInvoiced.invoiceId !== req.body.invoiceNumber) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: `Invoice not found for sale order ${salesOrderId}.Please create an invoice`
       })
     }
  
@@ -223,7 +233,32 @@ const deleteSalesReturnBySalesReturnId = async (req, res) => {
   }
 };
 
+const getSalesReturnBySalesOrderId = async(req, res) => {
+  try {
+    const {salesOrderId} = req.params;
+    const salesReturn = await SalesReturn.findOne({salesOrderId});
+    if(!salesReturn) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: "Sales return does not exist"
+      })
+    }
+    return res.status(200).json({
+      success: true,
+      data: salesReturn,
+      message: "Sales return data fetched"
+    })
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
+
 exports.createSalesReturn = createSalesReturn;
 exports.generateSaleReturnNumber = generateSaleReturnNumber;
 exports.getAllSalesReturn = getAllSalesReturn;
 exports.deleteSalesReturnBySalesReturnId = deleteSalesReturnBySalesReturnId;
+exports.getSalesReturnBySalesOrderId = getSalesReturnBySalesOrderId;

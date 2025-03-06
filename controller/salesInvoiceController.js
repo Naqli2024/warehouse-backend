@@ -1,9 +1,10 @@
 const SalesInvoice = require("../models/salesInvoiceModel");
 const SalesOrder = require("../models/createSalesOrder");
+const Customer = require("../models/customerModel");
 
 const createSalesInvoice = async (req, res) => {
   try {
-    const { salesOrderId } = req.body;
+    const { salesOrderId, customerName } = req.body;
     const isExists = await SalesOrder.findOne({ salesOrderId });
     if (!isExists || isExists.status.value !== "Approved") {
       return res.status(404).json({
@@ -34,6 +35,15 @@ const createSalesInvoice = async (req, res) => {
     }
     const newInvoice = new SalesInvoice(req.body);
     await newInvoice.save();
+
+    const customer = await Customer.findOne({
+      "basicInformation.firstName": customerName.split(" ")[0], // Matches only first name
+    });
+
+    if (customer) {
+      customer.salesList.push(newInvoice);
+      await customer.save();
+    }
 
     res.status(200).json({
       success: true,
@@ -103,6 +113,25 @@ const editSalesInvoice = async (req, res) => {
       { new: true, runValidators: true }
     );
 
+    // Find the customer document containing this invoice in salesList
+    const customer = await Customer.findOne({ "salesList.invoiceId": invoiceId });
+
+    if (customer) {
+      // Find the index of the invoice in salesList
+      const invoiceIndex = customer.salesList.findIndex(entry => entry.invoiceId === invoiceId);
+
+      if (invoiceIndex !== -1) {
+        // Replace the old invoice with the updated invoice details
+        customer.salesList[invoiceIndex] = {
+          ...updatedInvoice.toObject(), 
+          _id: customer.salesList[invoiceIndex]._id, 
+          updatedAt: new Date(), 
+        };
+
+        await customer.save();
+      }
+    }
+
     res.status(200).json({
       success: true,
       data: updatedInvoice,
@@ -128,6 +157,12 @@ const deleteSalesInvoice = async (req, res) => {
         message: "No invoice found",
       });
     }
+    // Find the customer and remove the invoice from salesList
+    await Customer.findOneAndUpdate(
+      { "salesList.invoiceId": invoiceId },
+      { $pull: { salesList: { invoiceId } } },
+      { new: true }
+    );
     return res.status(200).json({
       success: true,
       data: invoiceExists,
@@ -242,9 +277,128 @@ const generateOrderNo = async (req, res) => {
   }
 };
 
+const getSalesInvoiceDetails = async (req, res) => {
+  try {
+    const { salesOrderId } = req.params;
+    const invoiceDetails = await SalesInvoice.findOne({ salesOrderId });
+    if (!invoiceDetails) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: "No Invoice found",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      data: invoiceDetails,
+      message: "Invoice details fetched",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message,
+    });
+  }
+};
+
+const updateInvoiceWithCredits = async (req, res) => {
+  try {
+    const invoicesToUpdate = req.body;
+
+    if (!Array.isArray(invoicesToUpdate) || invoicesToUpdate.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid request. Expected an array of invoices.",
+      });
+    }
+
+    const updatedInvoices = [];
+
+    for (const invoiceData of invoicesToUpdate) {
+      const { invoiceId, invoiceCorrected, creditsUsed } = invoiceData;
+
+      // Check if Sales Invoice exists
+      const existingInvoice = await SalesInvoice.findOne({ invoiceId });
+
+      if (!existingInvoice) {
+        return res.status(404).json({
+          success: false,
+          message: `Sales invoice ${invoiceId} does not exist`,
+        });
+      }
+
+      if (invoiceCorrected === true && typeof creditsUsed === "number") {
+        existingInvoice.totalAmount = Math.max(
+          existingInvoice.totalAmount - creditsUsed,
+          0
+        );
+
+        existingInvoice.invoiceCorrected = true;
+        existingInvoice.creditsUsed = creditsUsed;
+      }
+
+      // Update Sales Invoice with new data
+      Object.assign(existingInvoice, invoiceData);
+      await existingInvoice.save();
+      updatedInvoices.push(existingInvoice);
+
+      // Update the corresponding customer's salesList and creditBalance
+      if (existingInvoice.customerName) {
+        const customerQuery = {
+          "basicInformation.firstName": existingInvoice.customerName.split(" ")[0],
+        };
+
+        // Step 1: Remove existing invoice from salesList
+        await Customer.findOneAndUpdate(customerQuery, {
+          $pull: { salesList: { invoiceId } },
+        });
+
+        // Step 2: Push updated invoice to salesList
+        const updatedCustomer = await Customer.findOneAndUpdate(
+          customerQuery,
+          {
+            $push: { salesList: existingInvoice },
+          },
+          { new: true } 
+        );
+
+        if (updatedCustomer) {
+          // Step 3: Recalculate total credits used from salesList
+          const totalCreditsUsed = updatedCustomer.salesList.reduce(
+            (sum, sale) => sum + (sale.creditsUsed || 0),
+            0
+          );
+
+          // Step 4: Update creditBalance
+          updatedCustomer.creditBalance = Math.max(
+            updatedCustomer.creditBalance - totalCreditsUsed,
+            0
+          );
+
+          await updatedCustomer.save();
+        }
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: updatedInvoices,
+      message: "Sales invoices updated successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 exports.createSalesInvoice = createSalesInvoice;
 exports.editSalesInvoice = editSalesInvoice;
 exports.deleteSalesInvoice = deleteSalesInvoice;
 exports.getAllInvoice = getAllInvoice;
 exports.generateInvoiceId = generateInvoiceId;
 exports.generateOrderNo = generateOrderNo;
+exports.getSalesInvoiceDetails = getSalesInvoiceDetails;
+exports.updateInvoiceWithCredits = updateInvoiceWithCredits;

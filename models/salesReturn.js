@@ -15,7 +15,7 @@ const salesReturnSchema = new mongoose.Schema(
         itemName: { type: String, required: true },
         sku: { type: String, required: true },
         unitPrice: {type: Number, required: true},
-        reason: { type: String, required: true },
+        reason: { type: String, required: false },
         shipped: { type: Number, required: true },
         returned: { type: Number, required: true, default: 0 },
         returnQty: { type: Number, required: false, default: 0 },

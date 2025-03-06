@@ -8,5 +8,7 @@ router.delete('/delete-salesInvoice/:invoiceId', salesInvoiceController.deleteSa
 router.get("/getAllInvoices", salesInvoiceController.getAllInvoice);
 router.get("/generateInvoiceId", salesInvoiceController.generateInvoiceId);
 router.get("/generateOrderNo", salesInvoiceController.generateOrderNo);
+router.get('/getInvoiceDetails/:salesOrderId', salesInvoiceController.getSalesInvoiceDetails);
+router.put("/updateInvoiceWithCredits", salesInvoiceController.updateInvoiceWithCredits);
 
 module.exports = router;

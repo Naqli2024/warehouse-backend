@@ -151,7 +151,42 @@ const deleteCustomerById = async(req, res) => {
   }
 }
 
+const getCustomerDetailsByName = async(req, res) => {
+  try {
+    const {companyName, customerName} = req.body;
+    const customer = await Customer.findOne({
+      "basicInformation.companyName": companyName,
+      $expr: {
+        $eq: [
+          { $concat: ["$basicInformation.firstName", " ", "$basicInformation.lastName"] },
+          customerName
+        ]
+      }
+    });
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        data: null,
+        message: `Customer ${customerName} not found in company ${companyName}`,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: customer,
+      message: "Customer details retrieved successfully",
+    });
+  } catch(error) {
+    return res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message
+    })
+  }
+}
+
 exports.updateOrCreateCustomer = updateOrCreateCustomer;
 exports.getAllCustomers = getAllCustomers;
 exports.getCustomerDetailsById = getCustomerDetailsById;
 exports.deleteCustomerById = deleteCustomerById;
+exports.getCustomerDetailsByName = getCustomerDetailsByName;

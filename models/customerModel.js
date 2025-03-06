@@ -35,6 +35,8 @@ const createNewCustomerSchema = new mongoose.Schema({
   billingAddress: billingAddressSchema,
   shippingAddress: shippingAddressSchema,
   salesList: [{}],
+  credits: [{ creditNoteId: { type: String, required: false } }],
+  creditBalance: {type: Number, required: false}
 });
 
 const newCustomer = mongoose.model("customer", createNewCustomerSchema);

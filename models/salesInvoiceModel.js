@@ -12,6 +12,7 @@ const salesInvoiceSchema = new mongoose.Schema(
     itemDetails: [
       {
         itemName: { type: String, default: "" },
+        sku: { type: String, required: true },
         quantity: { type: Number, default: 0 },
         price: { type: Number, default: 0 },
         discount: { type: Number, default: 0 },
@@ -36,7 +37,16 @@ const salesInvoiceSchema = new mongoose.Schema(
         default: "Pending"
     },
     partialAmount: {type: Number, required: false},
-    paymentMode: {type: String, required: false}
+    paymentMode: {type: String, required: false},
+    invoiceCorrected: {type: Boolean, default: false},
+    creditsUsed: {type: Number},
+     // Store old versions of invoices
+     invoiceHistory: [
+      {
+        type: Object, // Stores full invoice copy before modification
+        required: false,
+      },
+    ],
   },
   { timestamps: true }
 );

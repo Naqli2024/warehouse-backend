@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const itemDetailsSchema = new mongoose.Schema(
   {
     itemName: { type: String, default: "" },
+    sku: {type: String, default: "", required: true},
     quantity: { type: Number, default: 0 },
     price: { type: Number, default: 0 },
     discount: { type: Number, default: 0 },

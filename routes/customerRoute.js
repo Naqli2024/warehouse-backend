@@ -12,6 +12,7 @@ router.get(
   "/getCustomerDetailsById/:id",
   customerController.getCustomerDetailsById
 );
+router.post("/getCustomerDetailsByName", customerController.getCustomerDetailsByName);
 router.delete("/deleteCustomerById/:id", customerController.deleteCustomerById);
 
 module.exports = router;
