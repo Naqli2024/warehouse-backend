@@ -213,7 +213,7 @@ const getCreditNoteDetailsByCreditNoteId = async(req, res) => {
             return res.status(404).json({
                 success: false,
                 data: null,
-                message: "Credit note doe snot exist"
+                message: "Credit note does not exist"
             })
         }
         return res.status(200).json({
@@ -230,9 +230,35 @@ const getCreditNoteDetailsByCreditNoteId = async(req, res) => {
       }
 }
 
+const getCreditNoteDetailsByInvoiceId = async(req, res) => {
+  try {
+      const {invoiceId} = req.params;
+      const creditNoteDetails = await CreditNote.findOne({invoiceId})
+      if(!creditNoteDetails) {
+          return res.status(404).json({
+              success: false,
+              data: null,
+              message: "Credit note does not exist"
+          })
+      }
+      return res.status(200).json({
+          success: true,
+          data: creditNoteDetails,
+          message: `Credit note for ${invoiceId} details fetched`
+      })
+  } catch (error) {
+      return res.status(500).json({
+        success: false,
+        data: null,
+        message: error.message,
+      });
+    }
+}
+
 exports.createCreditNote = createCreditNote;
 exports.generateCreditNoteId = generateCreditNoteId;
 exports.getAllCreditNotes = getAllCreditNotes;
 exports.deleteCreditNoteByCreditNoteId = deleteCreditNoteByCreditNoteId;
 exports.updateCreditNote = updateCreditNote;
 exports.getCreditNoteDetailsByCreditNoteId = getCreditNoteDetailsByCreditNoteId;
+exports.getCreditNoteDetailsByInvoiceId = getCreditNoteDetailsByInvoiceId;

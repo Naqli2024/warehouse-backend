@@ -16,15 +16,30 @@ const customerRoute = require("./routes/customerRoute");
 const salesReturnRoute = require("./routes/salesReturnRoute");
 const salesInvoiceRoute = require("./routes/salesInvoiceRoute");
 const creditNoteRoute = require("./routes/creditNoteRoute");
+const employeeRoute = require("./routes/employeeRoute");
+const authRoute = require("./routes/authRoute");
+const cookieParser = require("cookie-parser");
 
-//environment variables
+// environment variables
 env.config();
-
-//Database
+ 
+// Database
 connectDb();
-
+ 
+// Middlewares
 app.use(express.json());
-app.use(cors());
+app.use(cookieParser());
+app.use(cors({
+  origin: "http://localhost:3000", // Allow frontend domain
+  credentials: true, // Allow cookies & authentication headers
+  methods: "GET,POST,PUT,DELETE",
+  allowedHeaders: "Content-Type,Authorization",
+}));
+ 
+// Serve static files (uploads)
+app.use("/uploads", express.static("uploads"));
+
+// Define Routes
 app.use("/api", purchaseRoute);
 app.use("/api", inventoryRoute);
 app.use("/api", saleOrderRoute);
@@ -38,6 +53,8 @@ app.use("/api", customerRoute);
 app.use("/api", salesReturnRoute);
 app.use("/api", salesInvoiceRoute);
 app.use("/api", creditNoteRoute);
+app.use("/api", employeeRoute);
+app.use("/api/auth", authRoute);
 
 app.listen(process.env.PORT, () =>
   console.log(`Server is connected at port ${process.env.PORT}`)

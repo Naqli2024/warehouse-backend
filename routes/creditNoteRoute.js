@@ -8,5 +8,6 @@ router.get('/getAllCreditNotes', creditNoteController.getAllCreditNotes);
 router.delete('/deleteCreditNoteByCreditNoteId/:creditNoteId', creditNoteController.deleteCreditNoteByCreditNoteId);
 router.put('/updateCreditNote/:creditNoteId', creditNoteController.updateCreditNote);
 router.get('/getCreditNoteDetailsByCreditNoteId/:creditNoteId', creditNoteController.getCreditNoteDetailsByCreditNoteId);
+router.get('/getCreditNoteDetailsByInvoiceId/:invoiceId', creditNoteController.getCreditNoteDetailsByInvoiceId);
 
 module.exports = router;
