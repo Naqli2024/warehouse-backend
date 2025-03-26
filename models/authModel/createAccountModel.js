@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const comapnyDetailsSchema = require("../companyDetailsModel");
 
 const createAccountSchema = new mongoose.Schema(
   {
@@ -15,7 +16,8 @@ const createAccountSchema = new mongoose.Schema(
     isVerified: { type: Boolean, default: false },
     verificationToken: { type: String },
     verificationTokenExpires: { type: String },
-    passwordChangedAt: { type: Date, default: null }
+    passwordChangedAt: { type: Date, default: null },
+    companyDetails: comapnyDetailsSchema
   },
   { timestamps: true }
 );

@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const sendVerificationEmail = require("../../utils/emailService");
 const crypto = require("crypto");
 const DeletedAccount = require("../../models/authModel/deleteAccountModel");
+const mongoose = require("mongoose");
 
 const createAccount = async (req, res) => {
   try {
@@ -123,7 +124,7 @@ const editAccount = async (req, res) => {
     }
 
     // Update the account details
-    const updatedUser = await User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
       id,
       {
         $set: {
@@ -144,6 +145,9 @@ const editAccount = async (req, res) => {
       { new: true, runValidators: true }
     );
 
+    // Query again to exclude the password field
+    const updatedUser = await User.findById(id).select('-password'); 
+
     // Response message based on email change
     const message = emailChanged
       ? "Account updated successfully. Please verify your new email."
@@ -152,7 +156,9 @@ const editAccount = async (req, res) => {
     return res.status(200).json({
       success: true,
       message,
-      data: updatedUser,
+      data: {
+        user: updatedUser
+      },
     });
   } catch (error) {
     return res.status(500).json({
@@ -163,9 +169,9 @@ const editAccount = async (req, res) => {
 };
 
 const deleteAccount = async(req, res) => {
-  try {
+  try { 
     const {id} = req.params;
-    const { reason, feedback } = req.body;
+    const { reason, feedback } = req.body; 
 
      // Validate MongoDB ID before querying
      if (!mongoose.Types.ObjectId.isValid(id)) {

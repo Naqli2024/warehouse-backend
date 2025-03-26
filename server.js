@@ -19,6 +19,8 @@ const creditNoteRoute = require("./routes/creditNoteRoute");
 const employeeRoute = require("./routes/employeeRoute");
 const authRoute = require("./routes/authRoute");
 const cookieParser = require("cookie-parser");
+const companyDetails = require("./routes/companyDetailsRoute");
+const floorManagementRoute = require("./routes/floorManagementRoute");
 
 // environment variables
 env.config();
@@ -55,6 +57,8 @@ app.use("/api", salesInvoiceRoute);
 app.use("/api", creditNoteRoute);
 app.use("/api", employeeRoute);
 app.use("/api/auth", authRoute);
+app.use("/api", companyDetails);
+app.use("/api", floorManagementRoute);
 
 app.listen(process.env.PORT, () =>
   console.log(`Server is connected at port ${process.env.PORT}`)
